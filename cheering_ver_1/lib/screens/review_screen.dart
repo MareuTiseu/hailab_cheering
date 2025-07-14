@@ -1,11 +1,10 @@
 // screens/review_screen.dart
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
 
 class ReviewScreen extends StatelessWidget {
   final String originalMessage;
 
-  const ReviewScreen({required this.originalMessage});
+  const ReviewScreen({super.key, required this.originalMessage});
 
   @override
   Widget build(BuildContext context) {

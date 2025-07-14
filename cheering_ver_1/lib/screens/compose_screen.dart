@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'review_screen.dart';
 
 class ComposeScreen extends StatefulWidget {
+  const ComposeScreen({super.key});
+
   @override
   _ComposeScreenState createState() => _ComposeScreenState();
 }

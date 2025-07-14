@@ -5,6 +5,8 @@ class ReceivedNotesScreen extends StatelessWidget {
   // 더미 데이터
   final List<String> receivedNotes = ['오늘도 잘 하고 있어요!', '힘들면 쉬어가도 괜찮아요.'];
 
+  ReceivedNotesScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

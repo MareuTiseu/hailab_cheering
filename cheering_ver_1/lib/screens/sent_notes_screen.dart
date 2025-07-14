@@ -8,6 +8,8 @@ class SentNotesScreen extends StatelessWidget {
     '당신의 하루가 빛나길 바라는 마음으로 썼어요.',
   ];
 
+  SentNotesScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

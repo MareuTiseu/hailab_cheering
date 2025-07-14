@@ -78,4 +78,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'hailab-polife-cheering.firebasestorage.app',
     iosBundleId: 'com.example.cheeringVer1',
   );
+
 }
