@@ -4,7 +4,7 @@ import 'package:cheering/screen/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'gpt_screen.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class WritingScreen extends StatefulWidget {
@@ -15,7 +15,9 @@ class WritingScreen extends StatefulWidget {
 }
 
 class _WritingScreenState extends State<WritingScreen> {
-  final TextEditingController _controller = TextEditingController();
+  final TextEditingController _textController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
 
   Color lightenColor(Color color, [double amount = 0.2]) {
     final hsl = HSLColor.fromColor(color);
@@ -23,9 +25,10 @@ class _WritingScreenState extends State<WritingScreen> {
     return lightened.toColor();
   }
 
+
   @override
   void dispose() {
-    _controller.dispose(); // 리소스 정리
+    _textController.dispose(); // 리소스 정리
     super.dispose();
   }
 
@@ -82,7 +85,7 @@ class _WritingScreenState extends State<WritingScreen> {
                       child: Padding(
                         padding: EdgeInsets.fromLTRB(20,20,20,20,),
                         child: TextField(
-                          controller: _controller,
+                          controller: _textController,
                           expands: true,
                           maxLines: null,
                           maxLength: 300, inputFormatters: [LengthLimitingTextInputFormatter(300)],
@@ -111,10 +114,12 @@ class _WritingScreenState extends State<WritingScreen> {
               width: 200,
               child: TextButton(
                 child: Text('다음'),
-                onPressed: (){
+                onPressed: () async {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => GptScreen(controller: _controller))
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => GptScreen(controller: _textController)
+                    )
                   );
                 },
                 style: TextButton.styleFrom(

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1097783890220",
+    "project_id": "hailab-cheering",
+    "storage_bucket": "hailab-cheering.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1097783890220:android:412de73a0e482bbc691c89",
+        "android_client_info": {
+          "package_name": "com.example.cheering"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgKbVQs8TE9NFdJhmsW01TMYUsP6RiX6k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

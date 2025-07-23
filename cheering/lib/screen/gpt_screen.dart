@@ -2,11 +2,42 @@ import 'package:cheering/screen/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'wrote_screen.dart';
-import 'home_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+final user = FirebaseAuth.instance.currentUser;
+final userId = user?.uid;
 
 class GptScreen extends StatelessWidget {
   final TextEditingController controller;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   const GptScreen({super.key, required this.controller});
+
+  Future<void> _saveTextToFirestore(BuildContext context) async {
+    if (controller.text.isNotEmpty) {
+      try {
+        await _firestore.collection('user_texts').add({
+          'text': controller.text,
+          'timestamp': FieldValue.serverTimestamp(), // 서버 시간으로 저장
+          'deleted': false,
+          'authorId': FirebaseAuth.instance.currentUser!.uid,
+        });
+        // _textController.clear(); // 저장 후 TextField 비우기
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(content: Text('텍스트가 성공적으로 저장되었습니다!')),
+        // );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('저장 중 오류 발생: $e')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('입력할 텍스트가 없습니다.')),
+      );
+    }
+  }
 
   Color lightenColor(Color color, [double amount = 0.2]) {
     final hsl = HSLColor.fromColor(color);
@@ -134,10 +165,13 @@ class GptScreen extends StatelessWidget {
                   width: 200,
                   child: TextButton(
                     child: Text('저장하기'),
-                    onPressed: (){
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => WroteScreen())
+                    onPressed: () async {
+                      final inputText = controller.text;
+                      await _saveTextToFirestore(context);
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => WroteScreen()),
+                            (route) => route.isFirst, // ❗첫 번째(HomeScreen)만 남기고 나머지 제거
                       );
                     },
                     style: TextButton.styleFrom(
@@ -156,12 +190,10 @@ class GptScreen extends StatelessWidget {
                   width: 200,
                   child: TextButton(
                     child: Text('전송하기'),
-                    onPressed: (){
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => HomeScreen()),
-                            (route) => false, // ❗ 모든 기존 라우트 제거
-                      );
+                    onPressed: () async {
+                      final inputText = controller.text;
+                      await _saveTextToFirestore(context);
+                      Navigator.popUntil(context, (route) => route.isFirst);
                     },
                     style: TextButton.styleFrom(
                         foregroundColor: Colors.white,
