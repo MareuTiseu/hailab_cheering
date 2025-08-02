@@ -1,10 +1,36 @@
+// lib/screen/home_screen.dart
 import 'package:flutter/material.dart';
 import 'writing_screen.dart';
 import 'received_screen.dart';
 import 'wrote_screen.dart';
+import 'notification_screen.dart';
+import 'package:flutter/foundation.dart';
+import '../services/notification_service_platform.dart';
+import '../services/notification_history_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final NotificationHistoryService _historyService = NotificationHistoryService();
+  int _unreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationCount();
+  }
+
+  Future<void> _loadNotificationCount() async {
+    await _historyService.loadNotifications();
+    setState(() {
+      _unreadCount = _historyService.unreadCount;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +46,96 @@ class HomeScreen extends StatelessWidget {
             fontWeight: FontWeight.w500,
           ),
         ),
+        actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: Icon(Icons.notifications_outlined, size: 28),
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => NotificationScreen()),
+                  );
+                  _loadNotificationCount();
+                },
+              ),
+              if (_unreadCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      '$_unreadCount',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          // 웹에서만 테스트 버튼 (2가지 알림)
+          if (kIsWeb)
+            PopupMenuButton<String>(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  '테스트',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+              ),
+              onSelected: (value) async {
+                if (value == 'write') {
+                  await _historyService.addWriteReminderNotification();
+                  _loadNotificationCount();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('작성 독려 알림 추가! 🔔'), duration: Duration(seconds: 1)),
+                  );
+                } else if (value == 'message') {
+                  await _historyService.addMessageReceivedNotification();
+                  _loadNotificationCount();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('메시지 수신 알림 추가! 💌'), duration: Duration(seconds: 1)),
+                  );
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'write',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit, size: 20, color: Colors.orange),
+                      SizedBox(width: 8),
+                      Text('작성 독려 알림'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'message',
+                  child: Row(
+                    children: [
+                      Icon(Icons.mail, size: 20, color: Colors.green),
+                      SizedBox(width: 8),
+                      Text('메시지 수신 알림'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          SizedBox(width: 8),
+        ],
       ),
       body: Align(
           alignment: Alignment.center,
@@ -34,42 +150,42 @@ class HomeScreen extends StatelessWidget {
                   Flexible(
                     flex: 10,
                     child: _buildStyledButton(
-                      context,
-                      label: '작성하기',
-                      onPressed: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => WritingScreen()),
-                      ),
-                      height: double.infinity,
-                      backgroundColor: Color(0xFF2D61AC)
+                        label: '작성하기',
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => WritingScreen()),
+                        ),
+                        height: double.infinity,
+                        backgroundColor: Color(0xFF2D61AC)
                     ),
                   ),
                   Spacer(flex: 1,),
                   Flexible(
                     flex: 10,
                     child: _buildStyledButton(
-                      context,
-                      label: '받은 쪽지',
-                      onPressed: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => ReceivedScreen()),
-                      ),
-                      height: double.infinity,
-                      backgroundColor: Color(0xFF4DB8B5)
+                        label: '받은 쪽지',
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => ReceivedScreen()),
+                        ),
+                        height: double.infinity,
+                        backgroundColor: Color(0xFF4DB8B5)
                     ),
                   ),
                   Spacer(flex: 1,),
                   Flexible(
                     flex: 10,
                     child: _buildStyledButton(
-                      context,
-                      label: '작성한 쪽지',
-                      onPressed: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => WroteScreen()),
-                      ),
-                      height: double.infinity,
-                      backgroundColor: Color(0xFFCCEC7B)
+                        label: '작성한 쪽지',
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => WroteScreen()),
+                        ),
+                        height: double.infinity,
+                        backgroundColor: Color(0xFFCCEC7B)
                     ),
                   )
                 ],
@@ -102,10 +218,6 @@ class HomeScreen extends StatelessWidget {
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            // side: BorderSide(
-            //   color: Colors.grey.shade100,
-            //   width: 1
-            // )
           ),
           padding: EdgeInsets.zero,
         ),
@@ -124,16 +236,10 @@ class HomeScreen extends StatelessWidget {
                     borderRadius: BorderRadius.vertical(
                       bottom: Radius.circular(8),
                     ),
-                    // border: Border.all(
-                    //   color: Colors.grey.shade200,
-                    //   width: 1,
-                    // )
                   ),
                 ),
               ),
             ),
-
-            // 중앙 텍스트
             Center(
               child: Text(
                 label,
@@ -144,14 +250,10 @@ class HomeScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
-
             SizedBox(height: 16,)
           ],
         ),
       ),
     );
   }
-
-
-
 }
